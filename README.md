@@ -5,10 +5,10 @@ Repo ini adalah repo untuk mengumpulkan penugasan praktikum ASD menggunakan baha
 
 The workspace contains two folders by default, where:
 
-- `src`: the folder to maintain sources
+- `bin`: Isi dari file .java
 - `LW01`: Folder pengumpulan praktikum pertama
 - `Prelab & Unguided` : Folder pengumpulan tugas prelab dan unguided
-- `lib`: the folder to maintain dependencies
+- `src`: isi dari file .class
 
 Meanwhile, the compiled output files will be generated in the `bin` folder by default.
 
