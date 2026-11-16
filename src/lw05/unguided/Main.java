@@ -204,7 +204,7 @@ public class Main {
         List<Integer> fastestPath = buildPath(destination, dijkstraPrev, start);
         printSummary("Fastest Route from " + names[start] + " to " + names[destination], fastestPath);
 
-        int savedMinutes = pathTime(fewestStopsPath) + pathTime(fastestPath);
+        int savedMinutes = pathTime(fewestStopsPath) - pathTime(fastestPath);
         int additionalStops = fastestPath.size() - fewestStopsPath.size();
         System.out.println("=== Comparison ===");
         System.out.println("The fastest route saves " + savedMinutes
