@@ -3,134 +3,140 @@ package lw05.prelab;
 import java.util.*;
 
 public class Main {
-    static int[][] adjacencyMatrix;
-    static int nodeCount;
-    static String[] buildingNames;
+    static int[][] graph;
+    static int size;
+    static String[] names;
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(Main.class.getResourceAsStream("campus.txt"));
+        // Write the main method yourself
+        Scanner sc = new Scanner(Main.class.getResourceAsStream("campus.txt"));
 
-        nodeCount = scanner.nextInt();
-        buildingNames = new String[nodeCount];
-        adjacencyMatrix = new int[nodeCount][nodeCount];
-        for (int index = 0; index < nodeCount; index++) {
-            buildingNames[index] = scanner.next();
+        size = sc.nextInt();
+        names = new String[size];
+        graph = new int[size][size];
+        for (int i = 0; i < size; i++) {
+            names[i] = sc.next();
         }
 
-        int edgeCount = scanner.nextInt();
-        while (edgeCount-- > 0) {
-            addEdge(scanner.nextInt(), scanner.nextInt(), scanner.nextInt());
+        int e = sc.nextInt();
+        while (e-- > 0) {
+            addEdge(sc.nextInt(), sc.nextInt(), sc.nextInt());
         }
 
-        int startNode = scanner.nextInt();
-        int destNode = scanner.nextInt();
+        int start = sc.nextInt();
+        int dest = sc.nextInt();
 
-        System.out.println("=== BFS from " + buildingNames[startNode] + " ===");
-        printPath(bfs(startNode));
+        System.out.println("=== BFS from " + names[start] + " ===");
+        printPath(bfs(start));
 
-        System.out.println("=== DFS from " + buildingNames[startNode] + " ===");
-        dfs(startNode);
-        printPath(dfsVisitOrder);
+        System.out.println("=== DFS from " + names[start] + " ===");
+        dfs(start);
+        printPath(dfsOrder);
 
-        dijkstraAlg(startNode, destNode);
+        dijkstraAlg(start, dest);
 
     }
 
-    static void addEdge(int source, int target, int walkTime) {
-        adjacencyMatrix[source][target] = walkTime;
-        adjacencyMatrix[target][source] = walkTime;
+    // Adds a two-way walkway (complete, do not change)
+    static void addEdge(int from, int to, int minutes) {
+        graph[from][to] = minutes;
+        graph[to][from] = minutes;
     }
 
-    static List<Integer> bfs(int startNode) {
-        List<Integer> visitOrder = new ArrayList<>();
-        Set<Integer> visitedSet = new HashSet<>();
-        Queue<Integer> bfsQueue = new LinkedList<>();
-        bfsQueue.add(startNode);
-        visitedSet.add(startNode);
-        while (!bfsQueue.isEmpty()) {
-            int currentNode = bfsQueue.poll();
-            visitOrder.add(currentNode);
-            for (int neighbor = 0; neighbor < nodeCount; neighbor++) {
-                if (!visitedSet.contains(neighbor)) {
-                    visitedSet.add(neighbor);
-                    bfsQueue.add(neighbor);
+    static List<Integer> bfs(int start) {
+        List<Integer> order = new ArrayList<>();
+        Set<Integer> visited = new HashSet<>();
+        Queue<Integer> queue = new LinkedList<>();
+        queue.add(start);
+        visited.add(start);
+        while (!queue.isEmpty()) {
+            int current = queue.poll(); // take the building at the front of the queue
+            order.add(current);
+            for (int next = 0; next < size; next++) {
+                if (!visited.contains(next)) { // next is a neighbour that has not been visited
+                    visited.add(next);
+                    queue.add(next); // put next at the back of the queue
                 }
             }
         }
-        return visitOrder;
+        return order;
     }
 
-    static Set<Integer> dfsVisitedSet = new HashSet<>();
-    static List<Integer> dfsVisitOrder = new ArrayList<>();
+    static Set<Integer> dfsVisited = new HashSet<>(); // shared by every recursive call of dfs()
+    static List<Integer> dfsOrder = new ArrayList<>(); // shared by every recursive call of dfs()
 
-    static void dfs(int currentNode) {
-        dfsVisitedSet.add(currentNode);
-        dfsVisitOrder.add(currentNode);
-        for (int neighbor = 0; neighbor < nodeCount; neighbor++) {
-            if (adjacencyMatrix[currentNode][neighbor] > 0 && !dfsVisitedSet.contains(neighbor)) {
-                dfs(neighbor);
+    static void dfs(int current) {
+        dfsVisited.add(current); // mark current as visited
+        dfsOrder.add(current);
+        for (int next = 0; next < size; next++) {
+            if (graph[current][next] > 0 && !dfsVisited.contains(next)) {
+                dfs(next); // go deeper from next
             }
         }
     }
 
-    static void dijkstraAlg(int startNode, int destNode) {
-        int[] shortestDist = new int[nodeCount];
-        for (int index = 0; index < nodeCount; index++) {
-            shortestDist[index] = Integer.MAX_VALUE;
+    static void dijkstraAlg(int start, int dest) {
+        int[] dist = new int[size];
+        for (int i = 0; i < size; i++) {
+            dist[i] = Integer.MAX_VALUE;
         }
-        shortestDist[startNode] = 0;
-        boolean[] visitedFlags = new boolean[nodeCount];
-        int[] previousNode = new int[nodeCount];
+        dist[start] = 0;
+        boolean[] visited = new boolean[size];
+        int[] prev = new int[size];
 
-        for (int round = 0; round < nodeCount; round++) {
-            int currentNode = findTheNextNode(visitedFlags, shortestDist);
-            if (currentNode == -1)
+        for (int i = 0; i < size; i++) {
+            int current = findTheNextNode(visited, dist);
+            if (current == -1)
                 break;
-            visitedFlags[currentNode] = true;
-            for (int neighbor = 0; neighbor < nodeCount; neighbor++) {
-                int candidateDist = shortestDist[currentNode] + adjacencyMatrix[currentNode][neighbor];
-                if (adjacencyMatrix[currentNode][neighbor] > 0 && candidateDist < shortestDist[neighbor]) {
-                    shortestDist[neighbor] = candidateDist;
-                    previousNode[neighbor] = currentNode;
+            visited[current] = true; // mark current as visited
+            for (int next = 0; next < size; next++) {
+                int newDist = dist[current] + graph[current][next];
+                if (graph[current][next] > 0 && newDist < dist[next]) { // the new distance is shorter
+                    dist[next] = newDist;
+                    prev[next] = current; // remember that next is reached from current
                 }
             }
         }
 
-        System.out.println("=== Shortest Time from " + buildingNames[startNode] + " ===");
-        for (int index = 0; index < nodeCount; index++) {
-            System.out.println(buildingNames[index] + " : " + shortestDist[index] + " min");
+        System.out.println("=== Shortest Time from " + names[start] + " ===");
+        for (int i = 0; i < size; i++) {
+            System.out.println(names[i] + " : " + dist[i] + " min");
         }
-        System.out.println("=== Shortest Route from " + buildingNames[startNode] + " to " + buildingNames[destNode] + " ===");
-        route(destNode, startNode, previousNode);
+        System.out.println("=== Shortest Route from " + names[start] + " to " + names[dest] + " ===");
+        route(dest, start, prev);
         System.out.println();
-        System.out.println("Total time: " + shortestDist[destNode] + " min");
+        System.out.println("Total time: " + dist[dest] + " min");
     }
 
-    static int findTheNextNode(boolean[] visitedFlags, int[] shortestDist) {
-        int minDist = Integer.MAX_VALUE;
-        int closestNode = -1;
-        for (int index = 0; index < nodeCount; index++) {
-            if (!visitedFlags[index] && shortestDist[index] < minDist) {
-                minDist = shortestDist[index];
-                closestNode = index;
+    // Helper of dijkstraAlg(): finds the unvisited building with the smallest
+    // distance
+    static int findTheNextNode(boolean[] visited, int[] dist) {
+        int min = Integer.MAX_VALUE;
+        int closest = -1;
+        for (int i = 0; i < size; i++) {
+            if (!visited[i] && dist[i] < min) { // i is unvisited and closer than min
+                min = dist[i];
+                closest = i;
             }
         }
-        return closestNode;
+        return closest;
     }
 
-    static void route(int currentNode, int startNode, int[] previousNode) {
-        if (currentNode == startNode) {
-            System.out.print(buildingNames[currentNode]);
+    // Helper of dijkstraAlg(): prints the route from start to current
+    static void route(int current, int start, int[] prev) {
+        if (current == start) {
+            System.out.print(names[current]);
         } else {
-            route(previousNode[currentNode], startNode, previousNode);
-            System.out.print(" -> " + buildingNames[currentNode]);
+            route(prev[current], start, prev); // print the route up to the previous building
+            System.out.print(" -> " + names[current]);
         }
     }
 
-    static void printPath(List<Integer> pathList) {
-        for (int index = 0; index < pathList.size(); index++) {
-            System.out.print(buildingNames[pathList.get(index)]);
-            if (index < pathList.size() - 1) {
+    // Prints the buildings as A -> B -> C (complete, do not change)
+    static void printPath(List<Integer> list) {
+        for (int i = 0; i < list.size(); i++) {
+            System.out.print(names[list.get(i)]);
+            if (i < list.size() - 1) {
                 System.out.print(" -> ");
             }
         }
